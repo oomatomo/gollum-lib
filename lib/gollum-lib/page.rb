@@ -447,7 +447,7 @@ module Gollum
     def page_match(name, path)
       if match = self.class.valid_filename?(path)
         @wiki.ws_subs.each do |sub|
-          return true if Page.cname(name).downcase == Page.cname(match, sub).downcase
+          return true if Page.cname(name).force_encoding('utf-8') == Page.cname(match, sub).force_encoding('utf-8')
         end
       end
       false
