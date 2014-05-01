@@ -28,20 +28,20 @@ class Gollum::Filter::Code < Gollum::Filter
         lang = lang[1] unless lang.nil?
       end
 
-      @map[id] = cached   ?
-      { :output => cached } :
-      { :lang => lang, :code => m_code, :indent => m_indent }
+      @map[id] = cached ?
+          { :output => cached } :
+          { :lang => lang, :code => m_code, :indent => m_indent }
 
       "#{m_indent}#{id}" # print the SHA1 ID with the proper indentation
     end
 
     data.gsub!(/^([ \t]*)``` ?([^\r\n]+)?\r?\n(.+?)\r?\n\1```[ \t]*\r?$/m) do
-      lang   = $2 ? $2.strip : nil
-      id     = Digest::SHA1.hexdigest("#{lang}.#{$3}")
-      cached = @markup.check_cache(:code, id)
-      @map[id] = cached   ?
-        { :output => cached } :
-        { :lang => lang, :code => $3, :indent => $1 }
+      lang     = $2 ? $2.strip : nil
+      id       = Digest::SHA1.hexdigest("#{lang}.#{$3}")
+      cached   = @markup.check_cache(:code, id)
+      @map[id] = cached ?
+          { :output => cached } :
+          { :lang => lang, :code => $3, :indent => $1 }
       "#{$1}#{id}" # print the SHA1 ID with the proper indentation
     end
 
@@ -74,18 +74,30 @@ class Gollum::Filter::Code < Gollum::Filter
     highlighted = []
     blocks.each do |lang, code|
       encoding = @markup.encoding || 'utf-8'
-      begin
-        if Rouge::Lexer.find(lang).nil?
-          lexer = Rouge::Lexers::PlainText.new
-          formatter = Rouge::Formatters::HTML.new(:wrap => false)
-          hl_code = formatter.format(lexer.lex(code))
-          hl_code = "<pre class='highlight'><span class='err'>#{CGI.escapeHTML(hl_code)}</span></pre>"
+
+      if defined? Pygments
+        # treat unknown and bash as standard pre tags
+        if !lang || lang.downcase == 'bash'
+          hl_code = "<pre>#{code}</pre>"
         else
-          hl_code = Rouge.highlight(code, lang, 'html')  
+          # must set startinline to true for php to be highlighted without <?
+          hl_code = Pygments.highlight(code, :lexer => lang, :options => { :encoding => encoding.to_s, :startinline => true })
         end
-      rescue
-        hl_code = code
+      else # Rouge
+        begin
+          if Rouge::Lexer.find(lang).nil?
+            lexer     = Rouge::Lexers::PlainText.new
+            formatter = Rouge::Formatters::HTML.new(:wrap => false)
+            hl_code   = formatter.format(lexer.lex(code))
+            hl_code   = "<pre class='highlight'><span class='err'>#{CGI.escapeHTML(hl_code)}</span></pre>"
+          else
+            hl_code = Rouge.highlight(code, lang, 'html')
+          end
+        rescue
+          hl_code = code
+        end
       end
+
       highlighted << hl_code
     end
 

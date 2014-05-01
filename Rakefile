@@ -119,12 +119,15 @@ task :release => :build do
     exit!
   end
   sh "git commit --allow-empty -a -m 'Release #{version}'"
-  sh "git pull"
+  sh "git pull --rebase origin master"
   sh "git tag v#{version}"
   sh "git push origin master"
   sh "git push origin v#{version}"
   sh "gem push pkg/#{name}-#{version}.gem"
 end
+
+desc 'Publish to rubygems. Same as release'
+task :publish => :release
 
 desc 'Build gem'
 task :build => :gemspec do
