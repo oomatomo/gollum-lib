@@ -222,7 +222,7 @@ context "Markup" do
         DATA
         ), commit_details)
     output   = @wiki.page(page).formatted_data
-    expected = %Q{<pre><code>      <pre class=\"highlight\"><span class=\"err\">rot13='tr '\\''A-Za-z'\\'' '\\''N-ZA-Mn-za-m'\\'</span></pre>\n</code></pre>}
+    expected = %Q{<pre><code>      <pre class=\"highlight\">rot13='tr '\\''A-Za-z'\\'' '\\''N-ZA-Mn-za-m'\\'</pre>\n</code></pre>}
     assert_html_equal expected, output
   end
 
@@ -235,7 +235,7 @@ context "Markup" do
 ~~~
       ), commit_details)
     output   = @wiki.page(page).formatted_data
-    expected = %Q{<pre class=\"highlight\"><span class=\"err\">'hi'</span></pre>}
+    expected = %Q{<pre class=\"highlight\">'hi'</pre>}
 
     assert_html_equal expected, output
   end
@@ -644,7 +644,7 @@ context "Markup" do
 
   test "code blocks with ascii characters" do
     content = "a\n\n```\n├─foo\n```\n\nb"
-    output  = %(<p>a</p><preclass=\"highlight\"><spanclass=\"err\">├─foo</span></pre><p>b</p>)
+    output  = %(<p>a</p><preclass=\"highlight\">├─foo</pre><p>b</p>)
     compare(content, output)
   end
 
@@ -716,7 +716,7 @@ np.array([[2,2],[1,3]],np.float)
 
   test "sequence diagram blocks" do
     content = "a\n\n{{{{{{default\nalice->bob: Test\n}}}}}}\n\nb"
-    output  = /.*<img src="http:\/\/www\.websequencediagrams\.com\/\?img=\w{9}" \/>.*/
+    output  = /.*<img src="\/\/www\.websequencediagrams\.com\/\?img=\w{9}" \/>.*/
 
     index = @wiki.repo.index
     index.add("Bilbo-Baggins.md", content)
@@ -943,7 +943,7 @@ __TOC__
     actual   = markup.render_default "#hi\n[[_TOC_]]"
 
     # assert_html_equal ignores class values due to using nokogiri diff so use assert_equal
-    assert_equal expected, actual
+    assert_equal expected, actual.strip
   end
 
   #########################################################################
